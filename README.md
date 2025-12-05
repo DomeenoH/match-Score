@@ -25,7 +25,9 @@
 - **样式系统**: [Tailwind CSS](https://tailwindcss.com/)
 - **AI 引擎**: [Google Generative AI SDK](https://github.com/google/google-api-nodejs-client)
 - **数据编码**: [LZ-String](https://github.com/pieroxy/lz-string) (URL Safe Compression)
-- **部署**: Vercel / Netlify / Node.js
+- **部署**: Vercel Serverless (Adapter Configured)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyour-username%2Fmatch-score&env=GEMINI_API_KEY)
 
 ## 🚀 快速开始
 
@@ -64,6 +66,8 @@ GEMINI_API_KEY=your_api_key_here
 
 ```bash
 npm run dev
+# 或者
+yarn dev
 ```
 
 访问 `http://localhost:4321` 开始体验。
