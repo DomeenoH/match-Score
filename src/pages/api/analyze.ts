@@ -13,7 +13,7 @@ export const POST: APIRoute = async ({ request }) => {
             throw new Error(`Invalid JSON body: ${e instanceof Error ? e.message : String(e)} `);
         }
 
-        const { prompt, stream } = body;
+        const { prompt, stream, config } = body;
 
         if (!prompt) {
             return new Response(JSON.stringify({ error: 'Prompt is required' }), {
@@ -25,15 +25,17 @@ export const POST: APIRoute = async ({ request }) => {
         // Log prompt preview
         console.log('Analyzing prompt:', prompt.substring(0, 50) + '...');
 
-        const apiKey = import.meta.env.GEMINI_API_KEY;
+        // Prioritize user config, fallback to env vars
+        const apiKey = config?.apiKey || import.meta.env.GEMINI_API_KEY;
+        const customEndpoint = config?.endpoint || import.meta.env.VITE_CUSTOM_AI_ENDPOINT;
+        const modelName = config?.model || 'gemini-2.5-flash-lite';
+
         if (!apiKey) {
             return new Response(JSON.stringify({ error: 'Server configuration error: MISSING_API_KEY' }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
-
-        const customEndpoint = import.meta.env.VITE_CUSTOM_AI_ENDPOINT;
 
         if (stream) {
             // Streaming Response
@@ -51,7 +53,7 @@ export const POST: APIRoute = async ({ request }) => {
                                     'Authorization': `Bearer ${apiKey} `
                                 },
                                 body: JSON.stringify({
-                                    model: 'gemini-2.5-flash-lite',
+                                    model: modelName,
                                     messages: [{ role: 'user', content: prompt }],
                                     stream: true
                                 })
@@ -97,7 +99,7 @@ export const POST: APIRoute = async ({ request }) => {
                             // Google SDK Streaming
                             console.log('Using Google Generative AI SDK for streaming');
                             const genAI = new GoogleGenerativeAI(apiKey);
-                            const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+                            const model = genAI.getGenerativeModel({ model: modelName });
                             const result = await model.generateContentStream(prompt);
 
                             for await (const chunk of result.stream) {
@@ -134,7 +136,7 @@ export const POST: APIRoute = async ({ request }) => {
                         'Authorization': `Bearer ${apiKey} `
                     },
                     body: JSON.stringify({
-                        model: 'gemini-2.5-flash-lite',
+                        model: modelName,
                         messages: [{ role: 'user', content: prompt }]
                     })
                 });
@@ -144,7 +146,7 @@ export const POST: APIRoute = async ({ request }) => {
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('Custom endpoint error body:', errorText);
-                    throw new Error(`Custom API Error: ${response.status} ${response.statusText} - ${errorText} `);
+                    throw new Error(`Custom API Error: ${response.status} ${response.statusText} - ${errorText}`);
                 }
 
                 let data;
@@ -156,7 +158,7 @@ export const POST: APIRoute = async ({ request }) => {
                     }
                     data = JSON.parse(text);
                 } catch (e) {
-                    throw new Error(`Failed to parse JSON from custom endpoint: ${e instanceof Error ? e.message : String(e)} `);
+                    throw new Error(`Failed to parse JSON from custom endpoint: ${e instanceof Error ? e.message : String(e)}`);
                 }
 
                 reportText = data.choices?.[0]?.message?.content || '';
@@ -168,7 +170,7 @@ export const POST: APIRoute = async ({ request }) => {
             } else {
                 // Use Google Generative AI SDK
                 const genAI = new GoogleGenerativeAI(apiKey);
-                const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+                const model = genAI.getGenerativeModel({ model: modelName });
 
                 const result = await model.generateContent(prompt);
                 const response = await result.response;

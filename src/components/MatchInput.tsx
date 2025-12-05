@@ -63,14 +63,14 @@ export default function MatchInput({ onMatch }: MatchInputProps) {
     return (
         <div className="max-w-md mx-auto p-8 bg-white rounded-xl shadow-sm border border-gray-100">
             <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">输入对方的 Soul Hash</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">输入对方的 Match Score</h2>
                 <p className="text-gray-500 text-sm">粘贴邀请函、链接或直接输入 Hash 编码</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                     <label htmlFor="hash-input" className="sr-only">
-                        Soul Hash
+                        Match Score
                     </label>
                     <textarea
                         id="hash-input"

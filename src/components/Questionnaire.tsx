@@ -6,12 +6,20 @@ interface QuestionnaireProps {
     onComplete: (hash: string) => void;
 }
 
-const DIMENSION_ORDER: Dimension[] = ['lifestyle', 'finance', 'communication', 'values'];
+const DIMENSION_ORDER: Dimension[] = ['lifestyle', 'finance', 'communication', 'intimacy', 'values'];
 
 export default function Questionnaire({ onComplete }: QuestionnaireProps) {
     const [answers, setAnswers] = useState<number[]>(new Array(QUESTIONS.length).fill(0));
     const [currentDimIndex, setCurrentDimIndex] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [name, setName] = useState('');
+    const [showNameInput, setShowNameInput] = useState(true);
+
+    const handleNameSubmit = () => {
+        if (name.trim()) {
+            setShowNameInput(false);
+        }
+    };
 
     const currentDimension = DIMENSION_ORDER[currentDimIndex];
     const currentQuestions = useMemo(() =>
@@ -56,14 +64,43 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
 
     const handleSubmit = () => {
         if (validateCurrentStep()) {
+            if (answers.some(a => a === 0)) {
+                setError("还有未完成的题目，请检查。");
+                return;
+            }
+
             const profile: Omit<SoulProfile, 'timestamp'> = {
                 version: 1,
                 answers: answers,
+                name: name.trim() || '神秘人'
             };
             const hash = encodeSoul(profile);
             onComplete(hash);
         }
     };
+
+    if (showNameInput) {
+        return (
+            <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg text-center">
+                <h2 className="text-2xl font-bold mb-6">首先，请留下你的名字</h2>
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="你的昵称"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-6 text-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                    onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
+                />
+                <button
+                    onClick={handleNameSubmit}
+                    disabled={!name.trim()}
+                    className="w-full py-3 bg-black text-white rounded-lg font-bold text-lg disabled:opacity-50 hover:bg-gray-800 transition-colors"
+                >
+                    开始测试
+                </button>
+            </div>
+        );
+    }
 
     const progress = Math.round((answers.filter(a => a !== 0).length / QUESTIONS.length) * 100);
 
@@ -104,7 +141,11 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
                         <div key={question.id} className="border-b border-gray-50 pb-8 last:border-0 last:pb-0">
                             <h4 className="text-lg font-medium text-gray-900 mb-4 leading-relaxed">
                                 <span className="text-gray-300 font-mono mr-3 text-sm">#{question.id}</span>
-                                {question.text}
+                                {question.text.split(/(\*\*.*?\*\*)/g).map((part, index) =>
+                                    part.startsWith('**') && part.endsWith('**')
+                                        ? <strong key={index} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>
+                                        : part
+                                )}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
                                 {question.options.map((option) => (

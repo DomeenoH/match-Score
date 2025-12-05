@@ -84,32 +84,35 @@ export const generateAIContext = (hostProfile: SoulProfile, guestProfile: SoulPr
 };
 
 export const createAIPrompt = (context: AIContext): string => {
-    const { matchScore, comparisonMatrix } = context;
+    const { matchScore, comparisonMatrix, hostProfile, guestProfile } = context;
+    const nameA = hostProfile.name || 'A';
+    const nameB = guestProfile.name || 'B';
 
     // 找出匹配点和冲突点
     const strengths = comparisonMatrix.filter(c => c.difference <= 1); // 差异度 <= 1 为优势
     const conflicts = comparisonMatrix.filter(c => c.difference >= 3); // 差异度 >= 3 为高冲突
 
     // 构建核心 Prompt
-    let prompt = `你是一位阅人无数的“资深情感观察员”，擅长用最直白、接地气的大白话分析人际关系。你的任务是根据两个人的50个维度问卷结果，生成一份“一针见血”但又充满温度的相性分析报告。两人基础匹配度为 ${matchScore}%。请从三个维度（优势、雷区、长期建议）分析，并使用中文分点作答。
+    let prompt = `你是一位阅人无数的“资深情感观察员”，擅长用最直白、接地气的大白话分析人际关系。你的任务是根据 ${nameA} 和 ${nameB} 两个人的50个维度问卷结果，生成一份“一针见血”但又充满温度的相性分析报告。两人基础匹配度为 ${matchScore}%。请从三个维度（优势、雷区、长期建议）分析，并使用中文分点作答。
 
 请注意：
 1. **说人话**：不要用心理学术语，要像老朋友聊天一样自然。
 2. **直击痛点**：不要模棱两可，好的坏的都要直接指出来。
-3. **结构清晰**：严格按照下方的格式输出。`;
+3. **结构清晰**：严格按照下方的格式输出。
+4. **代入名字**：在分析中自然地提到 ${nameA} 和 ${nameB} 的名字，不要只说“A”和“B”。`;
 
     // 优势分析
     prompt += "\n\n--- 优势维度（Difference <= 1）：两人天然契合点 ---";
     // 仅列出前 5 个最匹配的题目和结果
     strengths.slice(0, 5).forEach(c => {
-        prompt += `\n- [${c.dimension}]: Q.${c.id} (${c.question}) 两人答案几乎一致，A: ${c.A_label}, B: ${c.B_label}。`;
+        prompt += `\n- [${c.dimension}]: Q.${c.id} (${c.question}) 两人答案几乎一致，${nameA}: ${c.A_label}, ${nameB}: ${c.B_label}。`;
     });
 
     // 冲突分析
     prompt += "\n\n--- 核心雷区（Difference >= 3）：未来潜在的冲突爆发点 ---";
     // 仅列出前 5 个差异最大的题目和结果
     conflicts.slice(0, 5).forEach(c => {
-        prompt += `\n- [${c.dimension}]: Q.${c.id} (${c.question}) 差异巨大 (A:${c.A_label} vs B:${c.B_label})。这是硬性矛盾，需要深入关注。`;
+        prompt += `\n- [${c.dimension}]: Q.${c.id} (${c.question}) 差异巨大 (${nameA}:${c.A_label} vs ${nameB}:${c.B_label})。这是硬性矛盾，需要深入关注。`;
     });
 
     // 维度总结
@@ -202,11 +205,18 @@ export const testAIConnection = async (
     return await response.text();
 };
 
+export interface AIConfig {
+    endpoint?: string;
+    apiKey?: string;
+    model?: string;
+}
+
 export const fetchAIAnalysis = async (
     profileA: SoulProfile,
     profileB: SoulProfile,
     onRetry?: (count: number) => void,
-    onStream?: (text: string) => void
+    onStream?: (text: string) => void,
+    config?: AIConfig
 ): Promise<AnalysisResult> => {
     // 1. Generate Context
     const context = generateAIContext(profileA, profileB);
@@ -225,7 +235,7 @@ export const fetchAIAnalysis = async (
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ prompt, stream: true }), // Signal streaming
+                body: JSON.stringify({ prompt, stream: true, config }), // Signal streaming and pass config
             },
             3,
             1000,

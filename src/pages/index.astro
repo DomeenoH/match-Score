@@ -2,41 +2,95 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout title="Soul Hash | 寻找灵魂共鸣">
-    <div
-        class="flex flex-col items-center justify-center py-16 text-center space-y-12"
+<Layout title="Match Score | 寻找灵魂共鸣">
+    <main
+        class="flex min-h-screen flex-col items-center justify-center p-6 bg-white relative overflow-hidden"
     >
-        <div class="space-y-4 max-w-2xl">
-            <h1
-                class="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-6xl"
-            >
-                Soul Hash
-            </h1>
-            <p class="text-xl text-gray-500 leading-relaxed">
-                基于 50 个维度的深度灵魂契合度测试。<br />
-                生成你的灵魂哈希，寻找那个与你共鸣的人。
-            </p>
-        </div>
-
         <div
-            class="flex flex-col sm:flex-row gap-6 w-full max-w-md justify-center"
+            class="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]"
         >
-            <a
-                href="/create"
-                class="flex-1 px-8 py-4 bg-black text-white text-lg font-bold rounded-xl hover:bg-gray-800 transition-all transform hover:scale-105 shadow-lg text-center"
+        </div>
+
+        <div class="relative z-10 text-center max-w-2xl mx-auto">
+            <div class="mb-8 inline-block animate-float">
+                <h1
+                    class="text-6xl md:text-8xl font-black tracking-tighter mb-2 bg-clip-text text-transparent bg-gradient-to-b from-gray-900 to-gray-600"
+                >
+                    Match Score
+                </h1>
+                <p
+                    class="text-gray-500 font-mono text-sm tracking-[0.5em] uppercase"
+                >
+                    灵魂契合度协议
+                </p>
+            </div>
+
+            <p class="text-xl text-gray-600 mb-12 leading-relaxed font-light">
+                这不是普通的心理测试。<br />
+                我们将通过 50 个维度的深度扫描，<br />
+                计算你们灵魂的欧几里得距离。
+            </p>
+
+            <div
+                class="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
-                创建我的 Soul Hash
-            </a>
-            <a
-                href="/match"
-                class="flex-1 px-8 py-4 bg-white text-black border-2 border-black text-lg font-bold rounded-xl hover:bg-gray-50 transition-all transform hover:scale-105 shadow-sm text-center"
-            >
-                匹配 TA 的 Hash
-            </a>
+                <a
+                    href="/create"
+                    class="group relative px-8 py-4 bg-black text-white font-bold rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-2xl"
+                >
+                    <span class="relative z-10 flex items-center gap-2">
+                        创建我的 Match Score
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="transition-transform group-hover:translate-x-1"
+                            ><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"
+                            ></path></svg
+                        >
+                    </span>
+                    <div
+                        class="absolute inset-0 bg-gray-800 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"
+                    >
+                    </div>
+                </a>
+                <a
+                    href="/match"
+                    class="group relative px-8 py-4 bg-white text-black border-2 border-black font-bold rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-lg"
+                >
+                    <span class="relative z-10 flex items-center gap-2">
+                        匹配 TA 的 Match Score
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="transition-transform group-hover:translate-x-1"
+                            ><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"
+                            ></path></svg
+                        >
+                    </span>
+                    <div
+                        class="absolute inset-0 bg-gray-50 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"
+                    >
+                    </div>
+                </a>
+            </div>
         </div>
 
         <div
-            class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-left mt-16 w-full max-w-3xl"
+            class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-left mt-16 w-full max-w-3xl relative z-10"
         >
             <div class="p-6 bg-gray-50 rounded-2xl">
                 <div class="text-2xl mb-2">🧬</div>
@@ -60,5 +114,5 @@ import Layout from "../layouts/Layout.astro";
                 </p>
             </div>
         </div>
-    </div>
+    </main>
 </Layout>

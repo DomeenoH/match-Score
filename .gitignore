@@ -1,1 +1,21 @@
-node_modules
+# dependencies
+node_modules/
+
+# build outputs
+dist/
+.astro/
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# os
+.DS_Store
+Thumbs.db
