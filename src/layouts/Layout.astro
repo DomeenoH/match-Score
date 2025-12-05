@@ -31,7 +31,9 @@ const { title } = Astro.props;
                 >
                     Match Score
                 </a>
-                <nav class="flex gap-6 text-sm font-medium text-gray-600">
+                <nav
+                    class="flex gap-6 text-sm font-medium text-gray-600 items-center"
+                >
                     <a href="/" class="hover:text-black transition-colors"
                         >首页</a
                     >
@@ -41,6 +43,14 @@ const { title } = Astro.props;
                     <a href="/match" class="hover:text-black transition-colors"
                         >匹配</a
                     >
+                    <a
+                        href="https://github.com/DomeenoH/match-Score"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="hover:text-black transition-colors"
+                    >
+                        GitHub
+                    </a>
                 </nav>
             </div>
         </header>
@@ -52,7 +62,15 @@ const { title } = Astro.props;
         <footer
             class="py-8 text-center text-xs text-gray-400 border-t border-gray-50 mt-auto"
         >
-            <p>© 2025 Match Score. 版权所有。</p>
+            <p>
+                © 2025 Match Score. Built by <a
+                    href="https://github.com/DomeenoH/match-Score"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="hover:text-gray-600 underline decoration-dotted underline-offset-2"
+                    >DomeenoH</a
+                >
+            </p>
         </footer>
     </body>
 </html>

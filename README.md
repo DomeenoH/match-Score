@@ -1,4 +1,4 @@
-# Match Score (Soul Hash) 🔮
+# Match Score 🔮
 
 > 探索灵魂的欧几里得距离，AI 驱动的深度契合度分析。
 
