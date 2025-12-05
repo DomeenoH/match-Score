@@ -1,0 +1,17 @@
+{
+    "buildCommand": "yarn run build",
+    "framework": null,
+    "functions": {
+        "api/**/*.ts": {
+            "runtime": "nodejs20.x"
+        },
+        "_render": {
+            "runtime": "nodejs20.x"
+        }
+    },
+    "build": {
+        "env": {
+            "NODE_VERSION": "20"
+        }
+    }
+}
