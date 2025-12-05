@@ -21,6 +21,9 @@ export default function MatchFlow() {
 
     const handleMatchStart = (hash: string) => {
         setHostHash(hash);
+        const url = new URL(window.location.href);
+        url.searchParams.set('host', hash);
+        window.history.pushState({}, '', url);
     };
 
     useEffect(() => {
@@ -85,9 +88,20 @@ export default function MatchFlow() {
             setHostHash(hParam);
         }
 
+        // Check for local hash if not in URL
+        const localHash = localStorage.getItem('soul_hash');
+
         if (hParam && gParam) {
             setMyHash(gParam);
             runAnalysis(hParam, gParam);
+        } else if (hParam && localHash) {
+            // If we have host param AND a local hash, use local hash as guest
+            // Verify it's valid first
+            const profile = decodeSoul(localHash);
+            if (profile) {
+                setMyHash(localHash);
+                runAnalysis(hParam, localHash);
+            }
         }
     }, [aiConfig]); // Re-run if config changes? Maybe not, but initial load needs config. 
     // Actually, config is loaded in another useEffect. We should probably merge them or ensure config is ready.
@@ -250,7 +264,10 @@ export default function MatchFlow() {
                                         const profile = decodeSoul(hash);
                                         if (profile) {
                                             localStorage.setItem('soul_hash', hash);
-                                            window.location.reload();
+                                            setMyHash(hash);
+                                            if (hostHash) {
+                                                runAnalysis(hostHash, hash);
+                                            }
                                         } else {
                                             alert("无效的 Hash");
                                         }
