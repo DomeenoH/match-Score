@@ -1,4 +1,4 @@
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
+import LZString from 'lz-string';
 import { type SoulProfile } from './questions';
 
 // 编码：将用户的 SoulProfile 对象转化为紧凑的 URL-safe 字符串
@@ -10,13 +10,13 @@ export const encodeSoul = (profile: Omit<SoulProfile, 'timestamp'>): string => {
     };
     const jsonString = JSON.stringify(profileWithTimestamp);
     // 2. 压缩并转码
-    return compressToEncodedURIComponent(jsonString);
+    return LZString.compressToEncodedURIComponent(jsonString);
 };
 
 // 解码：将 Soul Hash 字符串还原为 SoulProfile 对象
 export const decodeSoul = (hash: string): SoulProfile | null => {
     // 1. 解码并解压
-    const jsonString = decompressFromEncodedURIComponent(hash);
+    const jsonString = LZString.decompressFromEncodedURIComponent(hash);
     if (!jsonString) return null;
 
     try {

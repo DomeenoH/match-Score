@@ -3,18 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import CreateFlow from "../components/CreateFlow";
 ---
 
-<Layout title="Create Soul Hash">
-    <main class="min-h-screen flex flex-col items-center justify-center p-4">
-        <div class="w-full max-w-2xl">
-            <div class="mb-8 text-center">
-                <a
-                    href="/"
-                    class="text-sm text-gray-500 hover:text-black transition-colors"
-                    >&larr; Back to Home</a
-                >
-            </div>
-
-            <CreateFlow client:only="react" />
-        </div>
-    </main>
+<Layout title="创建你的灵魂哈希 | Soul Hash">
+    <div class="w-full max-w-3xl mx-auto">
+        <CreateFlow client:load />
+    </div>
 </Layout>

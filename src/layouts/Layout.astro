@@ -7,7 +7,7 @@ const { title } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
     <head>
         <meta charset="UTF-8" />
         <meta name="description" content="Soul Hash Compatibility Test" />
@@ -16,36 +16,59 @@ const { title } = Astro.props;
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
     </head>
-    <body>
-        <slot />
+    <body
+        class="bg-white text-gray-900 min-h-screen flex flex-col font-sans antialiased selection:bg-black selection:text-white"
+    >
+        <header
+            class="border-b border-gray-100 sticky top-0 bg-white/80 backdrop-blur-md z-50"
+        >
+            <div
+                class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between"
+            >
+                <a
+                    href="/"
+                    class="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+                >
+                    Soul Hash
+                </a>
+                <nav class="flex gap-6 text-sm font-medium text-gray-600">
+                    <a href="/" class="hover:text-black transition-colors"
+                        >首页</a
+                    >
+                    <a href="/create" class="hover:text-black transition-colors"
+                        >创建</a
+                    >
+                    <a href="/match" class="hover:text-black transition-colors"
+                        >匹配</a
+                    >
+                </nav>
+            </div>
+        </header>
+
+        <main class="flex-1 w-full max-w-4xl mx-auto px-4 py-12">
+            <slot />
+        </main>
+
+        <footer
+            class="py-8 text-center text-xs text-gray-400 border-t border-gray-50 mt-auto"
+        >
+            <p>© 2025 Soul Hash. All rights reserved.</p>
+        </footer>
     </body>
 </html>
 <style is:global>
-    :root {
-        --accent: 136, 58, 234;
-        --accent-light: 224, 204, 250;
-        --accent-dark: 49, 10, 101;
-        --accent-gradient: linear-gradient(
-            45deg,
-            rgb(var(--accent)),
-            rgb(var(--accent-light)) 30%,
-            white 60%
-        );
+    /* Custom scrollbar for a premium feel */
+    ::-webkit-scrollbar {
+        width: 8px;
     }
-    html {
-        font-family: system-ui, sans-serif;
-        background: #ffffff;
-        background-size: 224px;
+    ::-webkit-scrollbar-track {
+        background: transparent;
     }
-    code {
-        font-family:
-            Menlo,
-            Monaco,
-            Lucida Console,
-            Liberation Mono,
-            DejaVu Sans Mono,
-            Bitstream Vera Sans Mono,
-            Courier New,
-            monospace;
+    ::-webkit-scrollbar-thumb {
+        background: #e5e7eb;
+        border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #d1d5db;
     }
 </style>
