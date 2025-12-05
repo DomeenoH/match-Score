@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import MatchInput from './MatchInput';
 import Questionnaire from './Questionnaire';
 import AnalysisReport from './AnalysisReport';
 import { decodeSoul } from '../lib/codec';
 import { fetchAIAnalysis, type AnalysisResult, calculateDistance, type AIConfig } from '../lib/ai';
+import type { ScenarioType } from '../lib/questions';
 
 export default function MatchFlow() {
     const [hostHash, setHostHash] = useState<string | null>(null);
@@ -214,12 +215,24 @@ export default function MatchFlow() {
         );
     };
 
+    // Detect scenario from host hash
+    const hostScenario: ScenarioType = useMemo(() => {
+        if (!hostHash) return 'couple';
+        const profile = decodeSoul(hostHash);
+        return profile?.type || 'couple';
+    }, [hostHash]);
+
+    // Scenario-aware labels
+    const scenarioLabels = hostScenario === 'friend'
+        ? { name: '朋友默契度', emoji: '🤝', questionCount: 8 }
+        : { name: '灵魂契合度', emoji: '💕', questionCount: 50 };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-black mb-4"></div>
-                <h3 className="text-xl font-bold text-gray-900">正在进行灵魂共鸣分析...</h3>
-                <p className="text-gray-500 mt-2">AI 正在对比你们的 50 个维度数据</p>
+                <h3 className="text-xl font-bold text-gray-900">正在进行{scenarioLabels.name}分析...</h3>
+                <p className="text-gray-500 mt-2">AI 正在对比你们的 {scenarioLabels.questionCount} 个维度数据</p>
                 {retryCount > 0 && (
                     <div className="mt-4 p-3 bg-yellow-50 text-yellow-800 rounded-lg text-sm animate-pulse border border-yellow-200">
                         AI 服务连接不稳定，正在进行第 {retryCount} 次重试...
@@ -280,11 +293,19 @@ export default function MatchFlow() {
             ) : hostHash ? (
                 <div className="max-w-4xl mx-auto">
                     <div className="mb-8 text-center bg-gray-50 p-6 rounded-xl border border-gray-100">
-                        <span className="inline-block px-3 py-1 bg-black text-white rounded-full text-xs font-mono mb-3">
-                            匹配模式
-                        </span>
+                        <div className="flex items-center justify-center gap-2 mb-3">
+                            <span className="inline-block px-3 py-1 bg-black text-white rounded-full text-xs font-mono">
+                                匹配模式
+                            </span>
+                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${hostScenario === 'friend'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-pink-100 text-pink-700'
+                                }`}>
+                                {scenarioLabels.emoji} {scenarioLabels.name}测试
+                            </span>
+                        </div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                            {hostHash ? decodeSoul(hostHash)?.name : '对方'} 已就位，请完成你的灵魂档案
+                            {hostHash ? decodeSoul(hostHash)?.name : '对方'} 已就位，请完成你的档案
                         </h2>
                         <p className="text-gray-500 text-sm font-mono break-all mb-4">目标编码: {hostHash}</p>
 
@@ -367,7 +388,7 @@ export default function MatchFlow() {
                             </div>
                         )}
                     </div>
-                    <Questionnaire onComplete={handleQuestionnaireComplete} />
+                    <Questionnaire onComplete={handleQuestionnaireComplete} scenario={hostScenario} />
                 </div>
             ) : (
                 <MatchInput onMatch={handleMatchStart} />
