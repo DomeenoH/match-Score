@@ -233,8 +233,10 @@ export default function MatchFlow() {
                         <span className="inline-block px-3 py-1 bg-black text-white rounded-full text-xs font-mono mb-3">
                             匹配模式
                         </span>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">对方已就位，请完成你的灵魂档案</h2>
-                        <p className="text-gray-500 text-sm font-mono">目标编码: {hostHash.substring(0, 12)}...</p>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                            {hostHash ? decodeSoul(hostHash)?.name : '对方'} 已就位，请完成你的灵魂档案
+                        </h2>
+                        <p className="text-gray-500 text-sm font-mono break-all">目标编码: {hostHash}</p>
                     </div>
                     <Questionnaire onComplete={handleQuestionnaireComplete} />
                 </div>
