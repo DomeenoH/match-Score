@@ -88,7 +88,7 @@ export default function Questionnaire({ onComplete, scenario = 'couple' }: Quest
             }
 
             const profile: Omit<SoulProfile, 'timestamp'> = {
-                version: 1,
+                version: 2, // v2: 多场景支持版本
                 answers: answers,
                 name: name.trim() || '神秘人',
                 type: scenario // Include scenario type in the profile

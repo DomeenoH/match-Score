@@ -94,9 +94,11 @@ export default function MatchFlow() {
                 console.error("MatchFlow: Failed to decode profiles");
                 setError("解析灵魂档案失败，请重试。");
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("MatchFlow: Analysis error", e);
-            setError("分析过程中发生错误，请稍后重试。");
+            // 优先显示具体的错误信息（如类型不匹配）
+            const errorMessage = e?.message || "分析过程中发生错误，请稍后重试。";
+            setError(errorMessage);
         } finally {
             setLoading(false);
             setRetryCount(0);
@@ -242,21 +244,49 @@ export default function MatchFlow() {
         );
     }
 
+    // 检测类型不匹配错误
+    const isTypeMismatchError = error?.includes('[TYPE_MISMATCH]');
+    const displayError = error?.replace('[TYPE_MISMATCH] ', '');
+
     if (error) {
         return (
             <div className="max-w-md mx-auto mt-10 p-6 bg-red-50 border border-red-200 rounded-lg text-center">
-                <h3 className="text-lg font-bold text-red-800 mb-2">出错了</h3>
-                <p className="text-red-600 mb-4">{error}</p>
-                <button
-                    onClick={() => window.location.href = '/match'}
-                    className="px-4 py-2 bg-white border border-red-300 text-red-700 rounded hover:bg-red-50 transition-colors"
-                >
-                    返回重试
-                </button>
+                <h3 className="text-lg font-bold text-red-800 mb-2">
+                    {isTypeMismatchError ? '⚠️ 类型不匹配' : '出错了'}
+                </h3>
+                <p className="text-red-600 mb-4">{displayError}</p>
+
+                {isTypeMismatchError ? (
+                    <div className="space-y-3">
+                        <p className="text-sm text-gray-600">
+                            您本地保存的档案类型与对方链接的测试类型不同。
+                            <br />请清除本地缓存后，使用正确的测试类型重新填写。
+                        </p>
+                        <button
+                            onClick={() => {
+                                localStorage.removeItem('soul_hash');
+                                // 清除 myHash 状态
+                                setMyHash(null);
+                                setError(null);
+                            }}
+                            className="px-6 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-md"
+                        >
+                            🗑️ 清除本地缓存并重新测试
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => window.location.href = '/match'}
+                        className="px-4 py-2 bg-white border border-red-300 text-red-700 rounded hover:bg-red-50 transition-colors"
+                    >
+                        返回重试
+                    </button>
+                )}
+
                 {/* Allow settings access even on error */}
                 <button
                     onClick={() => setShowSettings(true)}
-                    className="mt-4 text-sm text-gray-500 underline hover:text-gray-700"
+                    className="mt-4 block mx-auto text-sm text-gray-500 underline hover:text-gray-700"
                 >
                     检查 AI 设置
                 </button>

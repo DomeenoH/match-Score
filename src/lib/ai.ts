@@ -30,16 +30,26 @@ export interface AnalysisResult {
 
 /**
  * 计算两个 SoulProfile 之间的匹配度（距离）
- * 距离越小，匹配度越高
  */
 /**
  * 计算两个 SoulProfile 之间的匹配度（距离）
  * 距离越小，匹配度越高
  * v2.1: 引入加权算法
+ * v2.2: 增加类型兼容性校验
  */
 export const calculateDistance = (profileA: SoulProfile, profileB: SoulProfile): number => {
+    // 标准化类型：将 undefined 视为 'couple'（向后兼容 Legacy 数据）
+    const typeA: ScenarioType = profileA.type || 'couple';
+    const typeB: ScenarioType = profileB.type || 'couple';
+
+    // 类型兼容性校验
+    if (typeA !== typeB) {
+        const typeLabels = { couple: '情侣测试', friend: '朋友测试' };
+        throw new Error(`[TYPE_MISMATCH] 无法匹配：一方是「${typeLabels[typeA]}」档案，另一方是「${typeLabels[typeB]}」档案。请确保双方使用相同类型的测试。`);
+    }
+
     // Detect scenario from profiles (prefer host/profileA, then profileB, then default)
-    const scenario = profileA.type || profileB.type || 'couple';
+    const scenario = typeA; // Now guaranteed to be the same
     const questions = getQuestionsForScenario(scenario);
     return calculateDistanceWithQuestions(profileA, profileB, questions);
 };
@@ -83,8 +93,18 @@ export const generateAIContext = (
     guestProfile: SoulProfile,
     scenario?: ScenarioType
 ): AIContext => {
-    // 推断场景：优先使用参数，否则从 profile 中读取，最后默认 couple
-    const effectiveScenario: ScenarioType = scenario || hostProfile.type || 'couple';
+    // 标准化类型：将 undefined 视为 'couple'（向后兼容 Legacy 数据）
+    const hostType: ScenarioType = hostProfile.type || 'couple';
+    const guestType: ScenarioType = guestProfile.type || 'couple';
+
+    // 类型兼容性校验（优先级最高）
+    if (hostType !== guestType) {
+        const typeLabels = { couple: '情侣测试', friend: '朋友测试' };
+        throw new Error(`[TYPE_MISMATCH] 无法匹配：一方是「${typeLabels[hostType]}」档案，另一方是「${typeLabels[guestType]}」档案。请确保双方使用相同类型的测试。`);
+    }
+
+    // 推断场景：优先使用参数，否则从 profile 中读取（现在已校验一致），最后默认 couple
+    const effectiveScenario: ScenarioType = scenario || hostType;
     const questions = getQuestionsForScenario(effectiveScenario);
 
     // 0. 数据完整性校验 (Robustness)
