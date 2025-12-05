@@ -25,7 +25,7 @@ export default function MatchInput({ onMatch }: MatchInputProps) {
         for (const word of words) {
             if (word.length > 20 && !word.startsWith('http')) {
                 // Potential hash
-                return word.replace(/[^a-zA-Z0-9+/=]/g, '');
+                return word.replace(/[^a-zA-Z0-9+\-$]/g, '');
             }
         }
 

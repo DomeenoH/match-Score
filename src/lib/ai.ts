@@ -45,8 +45,8 @@ export const calculateDistance = (profileA: SoulProfile, profileB: SoulProfile):
         const question = QUESTIONS[i];
         const weight = question.weight || 1; // Default weight 1
 
-        const answerA = profileA.answers[i];
-        const answerB = profileB.answers[i];
+        const answerA = profileA.answers[i] ?? 3;
+        const answerB = profileB.answers[i] ?? 3;
 
         const diff = Math.abs(answerA - answerB);
 
@@ -231,7 +231,7 @@ export const generateCacheKey = (profileA: SoulProfile, profileB: SoulProfile): 
         console.error("Profile answers length mismatch for caching.");
         // 在长度不匹配时，使用默认的 name/version 结合作为 fallback
         const keyParts = [profileA.name || 'A', profileB.name || 'B'].sort();
-        return `match_v${profileA.version || 1}_${keyParts.join('_')}`;
+        return `match_v${profileA.version || '1'}_${keyParts.join('_')}`;
     }
 
     // 将两个 answers 数组转换为字符串

@@ -74,7 +74,7 @@ export const POST: APIRoute = async ({ request }) => {
         console.log('Analyzing prompt:', prompt.substring(0, 50) + '...');
 
         // Prioritize user config, fallback to env vars
-        const apiKey = config?.apiKey || import.meta.env.GEMINI_API_KEY;
+        const apiKey = config?.apiKey || import.meta.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
         const customEndpoint = config?.endpoint || import.meta.env.VITE_CUSTOM_AI_ENDPOINT;
         const modelName = config?.model || 'gemini-2.5-flash-lite';
 
