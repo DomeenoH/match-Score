@@ -1,6 +1,9 @@
-// 文件名: src/lib/questions.ts (v2.1 迭代版)
+// 文件名: src/lib/questions.ts (v2.2 多场景支持版)
 
 export type Dimension = 'lifestyle' | 'finance' | 'communication' | 'intimacy' | 'values';
+
+// 新增：场景类型定义
+export type ScenarioType = 'couple' | 'friend';
 
 export interface Question {
     id: number;
@@ -16,6 +19,7 @@ export interface Question {
 export interface SoulProfile {
     version: number;
     name?: string;
+    type?: ScenarioType; // 新增：场景类型，默认为 'couple'
     answers: number[]; // 1-5 scale
     timestamp: number;
 }
@@ -95,4 +99,47 @@ export const DIMENSION_DETAILS: Record<Dimension, { title: string; description: 
     communication: { title: "第三步：沟通与情感", description: "关于冲突处理、社交需求、情感表达和边界感的考察。" },
     intimacy: { title: "第四步：亲密与家庭观", description: "关于亲密需求、生育观、原生家庭和对安全感的深层考察。" },
     values: { title: "第五步：核心价值观", description: "关于人生目标、道德边界、风险偏好和世界观的深层考察。" },
+};
+
+// ============ 朋友默契度测试题库 (Friend Scenario) ============
+// MVP 版本：8 道关于旅行、借钱、情绪价值、相处边界的题目
+
+export const FRIEND_QUESTIONS: Question[] = [
+    // --- 玩乐默契 (4题) ---
+    { id: 1, text: "如果一起旅行，你希望的行程规划风格是？", dimension: 'lifestyle', weight: 1, options: [{ value: 1, label: "每分钟都排满" }, { value: 2, label: "大致有安排" }, { value: 3, label: "随性走停" }, { value: 4, label: "躺平型旅行" }, { value: 5, label: "完全临时起意" }] },
+    { id: 2, text: "你对AA制或轮流请客的态度是？", dimension: 'finance', weight: 1.5, options: [{ value: 1, label: "必须精确AA到分" }, { value: 2, label: "大致AA" }, { value: 3, label: "轮流请客" }, { value: 4, label: "谁有空谁付" }, { value: 5, label: "关系好不计较" }] },
+    { id: 3, text: "聚会时如果有人迟到，你的容忍度？", dimension: 'communication', weight: 1, options: [{ value: 1, label: "5分钟内必须到" }, { value: 2, label: "15分钟尚可" }, { value: 3, label: "半小时算正常" }, { value: 4, label: "1小时内都行" }, { value: 5, label: "来不来无所谓" }] },
+    { id: 4, text: "你认为好朋友应该隔多久见一次面？", dimension: 'lifestyle', weight: 1, options: [{ value: 1, label: "每周必须见" }, { value: 2, label: "每两周" }, { value: 3, label: "每月一次" }, { value: 4, label: "每季度" }, { value: 5, label: "一年见几次也行" }] },
+
+    // --- 情绪价值与边界 (4题) ---
+    { id: 5, text: "朋友向你借钱（不小的数目），你的态度？", dimension: 'finance', weight: 2, options: [{ value: 1, label: "关系再好也不借" }, { value: 2, label: "写欠条才借" }, { value: 3, label: "看关系和数额" }, { value: 4, label: "关系好就借" }, { value: 5, label: "朋友开口必须帮" }] },
+    { id: 6, text: "朋友深夜emo找你吐槽，你的反应？", dimension: 'communication', weight: 1.5, options: [{ value: 1, label: "不接受深夜打扰" }, { value: 2, label: "可以但希望简短" }, { value: 3, label: "陪聊但不给建议" }, { value: 4, label: "认真分析给建议" }, { value: 5, label: "随叫随到全力陪伴" }] },
+    { id: 7, text: "你会主动分享自己的私事或秘密吗？", dimension: 'intimacy', weight: 1.5, options: [{ value: 1, label: "从不分享" }, { value: 2, label: "很少分享" }, { value: 3, label: "看关系亲疏" }, { value: 4, label: "经常分享" }, { value: 5, label: "无话不谈" }] },
+    { id: 8, text: "如果朋友做了让你不舒服的事，你会怎么处理？", dimension: 'values', weight: 2, options: [{ value: 1, label: "直接说出来" }, { value: 2, label: "找机会委婉提" }, { value: 3, label: "暗示一下" }, { value: 4, label: "忍一忍算了" }, { value: 5, label: "默默疏远" }] },
+];
+
+// 朋友场景的维度映射（简化版）
+export const FRIEND_DIMENSION_DETAILS: Record<Dimension, { title: string; description: string }> = {
+    lifestyle: { title: "第一部分：玩乐默契", description: "关于旅行、聚会、见面频率的考察。" },
+    finance: { title: "第二部分：金钱观", description: "关于AA制和借钱态度的考察。" },
+    communication: { title: "第三部分：沟通边界", description: "关于时间边界和情绪支持的考察。" },
+    intimacy: { title: "第四部分：亲密程度", description: "关于分享隐私和信任度的考察。" },
+    values: { title: "第五部分：处事原则", description: "关于冲突处理方式的考察。" },
+};
+
+// ============ 场景工具函数 ============
+
+/**
+ * 根据场景类型获取对应题库
+ * @param scenario 场景类型，默认为 'couple'
+ */
+export const getQuestionsForScenario = (scenario: ScenarioType = 'couple'): Question[] => {
+    return scenario === 'friend' ? FRIEND_QUESTIONS : QUESTIONS;
+};
+
+/**
+ * 根据场景类型获取对应维度详情
+ */
+export const getDimensionDetailsForScenario = (scenario: ScenarioType = 'couple') => {
+    return scenario === 'friend' ? FRIEND_DIMENSION_DETAILS : DIMENSION_DETAILS;
 };

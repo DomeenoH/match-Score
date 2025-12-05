@@ -1,4 +1,4 @@
-import { type SoulProfile, QUESTIONS } from './questions';
+import { type SoulProfile, type ScenarioType, type Question, QUESTIONS, getQuestionsForScenario } from './questions';
 
 
 // 新增接口：用于封装发给 LLM 的数据结构
@@ -18,6 +18,7 @@ export interface AIContext {
     guestProfile: SoulProfile;
     matchScore: number;
     comparisonMatrix: ComparisonPoint[];
+    scenario: ScenarioType; // 新增：场景类型
 }
 
 export interface AnalysisResult {
@@ -62,20 +63,59 @@ export const calculateDistance = (profileA: SoulProfile, profileB: SoulProfile):
 };
 
 /**
- * 将两个 SoulProfile 转化为 LLM 需要的结构化对比数据
+ * 计算两个 SoulProfile 之间的匹配度（距离）- 支持自定义题库
+ * 用于多场景支持，根据传入的题库计算得分
  */
-export const generateAIContext = (hostProfile: SoulProfile, guestProfile: SoulProfile): AIContext => {
+export const calculateDistanceWithQuestions = (
+    profileA: SoulProfile,
+    profileB: SoulProfile,
+    questions: Question[]
+): number => {
+    let totalWeightedDiff = 0;
+    let maxWeightedDiff = 0;
+    const numQuestions = questions.length;
+
+    for (let i = 0; i < numQuestions; i++) {
+        const question = questions[i];
+        const weight = question.weight || 1;
+
+        const answerA = profileA.answers[i] ?? 3;
+        const answerB = profileB.answers[i] ?? 3;
+
+        const diff = Math.abs(answerA - answerB);
+
+        totalWeightedDiff += diff * weight;
+        maxWeightedDiff += 4 * weight;
+    }
+
+    const matchScore = Math.round((1 - (totalWeightedDiff / maxWeightedDiff)) * 100);
+    return matchScore;
+};
+
+/**
+ * 将两个 SoulProfile 转化为 LLM 需要的结构化对比数据
+ * @param scenario 场景类型，用于选择正确的题库
+ */
+export const generateAIContext = (
+    hostProfile: SoulProfile,
+    guestProfile: SoulProfile,
+    scenario?: ScenarioType
+): AIContext => {
+    // 推断场景：优先使用参数，否则从 profile 中读取，最后默认 couple
+    const effectiveScenario: ScenarioType = scenario || hostProfile.type || 'couple';
+    const questions = getQuestionsForScenario(effectiveScenario);
+
     // 0. 数据完整性校验 (Robustness)
-    const requiredLength = QUESTIONS.length;
+    const requiredLength = questions.length;
     if (hostProfile.answers.length !== requiredLength || guestProfile.answers.length !== requiredLength) {
         throw new Error(`数据版本不兼容：当前题库为 ${requiredLength} 题，但用户数据为 ${hostProfile.answers.length}/${guestProfile.answers.length} 题。请重新测试。`);
     }
 
-    // 1. 计算基础分数
-    const matchScore = calculateDistance(hostProfile, guestProfile);
+    // 1. 计算基础分数（使用场景对应的题库）
+    const matchScore = calculateDistanceWithQuestions(hostProfile, guestProfile, questions);
 
-    // 2. 遍历 50 题，生成对比矩阵
-    const comparisonMatrix: ComparisonPoint[] = QUESTIONS.map((q, index) => {
+    // 2. 遍历题目，生成对比矩阵
+    const comparisonMatrix: ComparisonPoint[] = questions.map((q, index) => {
         const A_answer = hostProfile.answers[index];
         const B_answer = guestProfile.answers[index];
         const A_option = q.options.find(opt => opt.value === A_answer);
@@ -98,11 +138,12 @@ export const generateAIContext = (hostProfile: SoulProfile, guestProfile: SoulPr
         guestProfile,
         matchScore,
         comparisonMatrix,
+        scenario: effectiveScenario,
     };
 };
 
 export const createAIPrompt = (context: AIContext): string => {
-    const { matchScore, comparisonMatrix, hostProfile, guestProfile } = context;
+    const { matchScore, comparisonMatrix, hostProfile, guestProfile, scenario } = context;
     const nameA = hostProfile.name || 'A';
     const nameB = guestProfile.name || 'B';
 
@@ -110,14 +151,35 @@ export const createAIPrompt = (context: AIContext): string => {
     const strengths = comparisonMatrix.filter(c => c.difference <= 1); // 差异度 <= 1 为优势
     const conflicts = comparisonMatrix.filter(c => c.difference >= 3); // 差异度 >= 3 为高冲突
 
-    // 构建核心 Prompt
-    let prompt = `你是一位阅人无数的“资深情感观察员”，擅长用最直白、接地气的大白话分析人际关系。你的任务是根据 ${nameA} 和 ${nameB} 两个人的50个维度问卷结果，生成一份“一针见血”但又充满温度的相性分析报告。两人基础匹配度为 ${matchScore}%。请从三个维度（优势、雷区、长期建议）分析，并使用中文分点作答。
+    // ============ 策略模式：根据场景切换 AI 人设 ============
+    let prompt: string;
+
+    if (scenario === 'friend') {
+        // "毒舌又幽默的社交评论家" persona for friend scenario
+        prompt = `你是一位"毒舌又幽默的社交评论家"，专门分析朋友间的默契程度。你说话直接犀利但不刻薄，擅长用网络流行语和生动比喻。你的任务是根据 ${nameA} 和 ${nameB} 的 ${comparisonMatrix.length} 道朋友默契问卷结果，生成一份有趣又有洞察力的友情分析报告。两人基础默契度为 ${matchScore}%。
+
+请从以下三个维度分析，使用中文分点作答：
+
+分析重点：
+1. **玩乐默契**：能不能一起愉快地旅行、聚会？会不会因为行程安排吵起来？
+2. **相处边界**：借钱、深夜 emo、分享隐私...这些敏感话题两人是否有共识？
+3. **长期友谊建议**：怎么做才能让这段友情久一点？
+
+风格要求：
+1. **毒舌但有爱**：可以吐槽，但要让人笑着接受。
+2. **用梗说话**：适当使用网络流行语，但不要太尬。
+3. **结构清晰**：严格按照下方格式输出。
+4. **代入名字**：自然地提到 ${nameA} 和 ${nameB} 的名字。`;
+    } else {
+        // "资深情感观察员" persona for couple scenario (default)
+        prompt = `你是一位阅人无数的"资深情感观察员"，擅长用最直白、接地气的大白话分析人际关系。你的任务是根据 ${nameA} 和 ${nameB} 两个人的${comparisonMatrix.length}个维度问卷结果，生成一份"一针见血"但又充满温度的相性分析报告。两人基础匹配度为 ${matchScore}%。请从三个维度（优势、雷区、长期建议）分析，并使用中文分点作答。
 
 请注意：
 1. **说人话**：不要用心理学术语，要像老朋友聊天一样自然。
 2. **直击痛点**：不要模棱两可，好的坏的都要直接指出来。
 3. **结构清晰**：严格按照下方的格式输出。
-4. **代入名字**：在分析中自然地提到 ${nameA} 和 ${nameB} 的名字，不要只说“A”和“B”。`;
+4. **代入名字**：在分析中自然地提到 ${nameA} 和 ${nameB} 的名字，不要只说"A"和"B"。`;
+    }
 
     // 优势分析
     prompt += "\n\n--- 优势维度（Difference <= 1）：两人天然契合点 ---";

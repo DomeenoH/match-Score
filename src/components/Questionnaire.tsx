@@ -1,15 +1,26 @@
 import React, { useState, useMemo } from 'react';
-import { QUESTIONS, type SoulProfile, type Dimension, DIMENSION_DETAILS } from '../lib/questions';
+import { QUESTIONS, type SoulProfile, type Dimension, type ScenarioType, getQuestionsForScenario, getDimensionDetailsForScenario } from '../lib/questions';
 import { encodeSoul } from '../lib/codec';
 
 interface QuestionnaireProps {
     onComplete: (hash: string) => void;
+    scenario?: ScenarioType;
 }
 
-const DIMENSION_ORDER: Dimension[] = ['lifestyle', 'finance', 'communication', 'intimacy', 'values'];
+export default function Questionnaire({ onComplete, scenario = 'couple' }: QuestionnaireProps) {
+    // Get questions and dimension details based on scenario
+    const questions = useMemo(() => getQuestionsForScenario(scenario), [scenario]);
+    const dimensionDetails = useMemo(() => getDimensionDetailsForScenario(scenario), [scenario]);
 
-export default function Questionnaire({ onComplete }: QuestionnaireProps) {
-    const [answers, setAnswers] = useState<number[]>(new Array(QUESTIONS.length).fill(0));
+    // Dynamically determine dimension order based on available questions
+    const dimensionOrder = useMemo(() => {
+        const dims = new Set(questions.map(q => q.dimension));
+        // Maintain preferred order where possible
+        const preferredOrder: Dimension[] = ['lifestyle', 'finance', 'communication', 'intimacy', 'values'];
+        return preferredOrder.filter(d => dims.has(d));
+    }, [questions]);
+
+    const [answers, setAnswers] = useState<number[]>(new Array(questions.length).fill(0));
     const [currentDimIndex, setCurrentDimIndex] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [name, setName] = useState('');
@@ -21,14 +32,14 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
         }
     };
 
-    const currentDimension = DIMENSION_ORDER[currentDimIndex];
+    const currentDimension = dimensionOrder[currentDimIndex];
     const currentQuestions = useMemo(() =>
-        QUESTIONS.filter(q => q.dimension === currentDimension),
-        [currentDimension]
+        questions.filter(q => q.dimension === currentDimension),
+        [currentDimension, questions]
     );
 
     const handleOptionSelect = (questionId: number, value: number) => {
-        const index = QUESTIONS.findIndex(q => q.id === questionId);
+        const index = questions.findIndex(q => q.id === questionId);
         if (index === -1) return;
 
         const newAnswers = [...answers];
@@ -39,7 +50,7 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
 
     const validateCurrentStep = () => {
         const unansweredInStep = currentQuestions.filter(q => {
-            const index = QUESTIONS.findIndex(globalQ => globalQ.id === q.id);
+            const index = questions.findIndex(globalQ => globalQ.id === q.id);
             return answers[index] === 0;
         });
 
@@ -72,12 +83,17 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
             const profile: Omit<SoulProfile, 'timestamp'> = {
                 version: 1,
                 answers: answers,
-                name: name.trim() || '神秘人'
+                name: name.trim() || '神秘人',
+                type: scenario // Include scenario type in the profile
             };
             const hash = encodeSoul(profile);
             onComplete(hash);
         }
     };
+
+    // Determine title based on scenario
+    const testTitle = scenario === 'friend' ? '朋友默契度测试' : '灵魂契合度测试';
+    const submitButtonText = scenario === 'friend' ? '生成我的默契密码' : '生成我的灵魂哈希';
 
     if (showNameInput) {
         return (
@@ -102,7 +118,7 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
         );
     }
 
-    const progress = Math.round((answers.filter(a => a !== 0).length / QUESTIONS.length) * 100);
+    const progress = Math.round((answers.filter(a => a !== 0).length / questions.length) * 100);
 
     return (
         <div className="max-w-3xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -111,7 +127,7 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
                 {/* Progress Bar */}
                 <div className="mb-6">
                     <div className="flex justify-between items-end mb-2">
-                        <h2 className="text-xl font-bold text-gray-900">灵魂契合度测试</h2>
+                        <h2 className="text-xl font-bold text-gray-900">{testTitle}</h2>
                         <span className="text-sm font-mono text-gray-500">{progress}% 完成</span>
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-2">
@@ -125,10 +141,10 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
                 {/* Current Section Info */}
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                     <h3 className="text-lg font-bold text-gray-900 mb-1">
-                        {DIMENSION_DETAILS[currentDimension].title}
+                        {dimensionDetails[currentDimension]?.title || currentDimension}
                     </h3>
                     <p className="text-sm text-gray-600">
-                        {DIMENSION_DETAILS[currentDimension].description}
+                        {dimensionDetails[currentDimension]?.description || ''}
                     </p>
                 </div>
             </div>
@@ -136,7 +152,7 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
             {/* Questions List */}
             <div key={currentDimIndex} className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500 ease-out">
                 {currentQuestions.map((question) => {
-                    const globalIndex = QUESTIONS.findIndex(q => q.id === question.id);
+                    const globalIndex = questions.findIndex(q => q.id === question.id);
                     return (
                         <div key={question.id} className="border-b border-gray-50 pb-8 last:border-0 last:pb-0">
                             <h4 className="text-lg font-medium text-gray-900 mb-4 leading-relaxed">
@@ -199,7 +215,7 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
                     上一步
                 </button>
 
-                {currentDimIndex < DIMENSION_ORDER.length - 1 ? (
+                {currentDimIndex < dimensionOrder.length - 1 ? (
                     <button
                         onClick={handleNext}
                         className="px-8 py-3 bg-black text-white font-bold rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg flex-1 sm:flex-none"
@@ -211,7 +227,7 @@ export default function Questionnaire({ onComplete }: QuestionnaireProps) {
                         onClick={handleSubmit}
                         className="px-8 py-3 bg-black text-white font-bold rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg flex-1 sm:flex-none"
                     >
-                        生成我的灵魂哈希
+                        {submitButtonText}
                     </button>
                 )}
             </div>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { decodeSoul } from '../lib/codec';
 
 interface SoulHashDisplayProps {
     hash: string;
@@ -7,12 +8,30 @@ interface SoulHashDisplayProps {
 export default function SoulHashDisplay({ hash }: SoulHashDisplayProps) {
     const [copied, setCopied] = useState(false);
 
+    // Decode hash to extract user's name for personalized sharing
+    const userName = useMemo(() => {
+        try {
+            const profile = decodeSoul(hash);
+            return profile?.name || null;
+        } catch {
+            return null;
+        }
+    }, [hash]);
+
     // Construct the full URL
     const shareUrl = typeof window !== 'undefined'
         ? `${window.location.origin}/match?host=${hash}`
         : `/match?host=${hash}`;
 
-    const invitationText = `【Match Score 邀请函】
+    // Personalized invitation text with fallback
+    const invitationText = userName
+        ? `【Match Score 邀请函】我是${userName}，我已完成灵魂契合度测试。点击下方链接，完成你的问卷，看看我们的相性如何：
+
+${shareUrl}
+
+或直接复制我的 Match Score 编码（如果链接失效）：
+${hash}`
+        : `【Match Score 邀请函】
 朋友，我已完成我的灵魂契合度测试。点击下方链接，完成你的问卷，看看我们的相性如何：
 
 ${shareUrl}
