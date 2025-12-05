@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { QUESTIONS, type SoulProfile, type Dimension, type ScenarioType, getQuestionsForScenario, getDimensionDetailsForScenario } from '../lib/questions';
 import { encodeSoul } from '../lib/codec';
 
@@ -20,11 +20,18 @@ export default function Questionnaire({ onComplete, scenario = 'couple' }: Quest
         return preferredOrder.filter(d => dims.has(d));
     }, [questions]);
 
-    const [answers, setAnswers] = useState<number[]>(new Array(questions.length).fill(0));
+    const [answers, setAnswers] = useState<number[]>(() => new Array(questions.length).fill(0));
     const [currentDimIndex, setCurrentDimIndex] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [name, setName] = useState('');
     const [showNameInput, setShowNameInput] = useState(true);
+
+    // Reset answers when questions/scenario changes
+    useEffect(() => {
+        setAnswers(new Array(questions.length).fill(0));
+        setCurrentDimIndex(0);
+        setError(null);
+    }, [questions.length, scenario]);
 
     const handleNameSubmit = () => {
         if (name.trim()) {

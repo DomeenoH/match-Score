@@ -27,45 +27,87 @@ import Layout from "../layouts/Layout.astro";
 
             <p class="text-xl text-gray-600 mb-12 leading-relaxed font-light">
                 这不是普通的心理测试。<br />
-                我们将通过 50 个维度的深度扫描，<br />
-                计算你们灵魂的深度契合距离。
+                选择你的场景，开启深度灵魂扫描。
             </p>
 
+            <!-- Scenario Selection Cards -->
             <div
-                class="flex flex-col sm:flex-row gap-4 justify-center items-center"
+                class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12 max-w-xl mx-auto"
             >
+                <!-- Couple Scenario Card -->
                 <a
                     href="/create"
-                    class="group relative px-8 py-4 bg-black text-white font-bold rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-2xl"
+                    class="group relative p-6 bg-gradient-to-br from-pink-50 to-rose-100 rounded-2xl border-2 border-pink-200 hover:border-pink-400 transition-all hover:scale-105 hover:shadow-xl text-left"
                 >
-                    <span class="relative z-10 flex items-center gap-2">
-                        创建我的 Match Score
+                    <div class="text-4xl mb-3">💕</div>
+                    <h3 class="font-bold text-gray-900 text-lg mb-2">
+                        情侣契合度
+                    </h3>
+                    <p class="text-sm text-gray-600 mb-3">
+                        50
+                        道深度题目，覆盖生活习惯、金钱观、沟通模式、亲密关系、核心价值观五大维度。
+                    </p>
+                    <span
+                        class="inline-flex items-center gap-1 text-sm font-medium text-pink-600 group-hover:gap-2 transition-all"
+                    >
+                        开始测试
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
+                            width="16"
+                            height="16"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
                             stroke-width="2"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                            class="transition-transform group-hover:translate-x-1"
                             ><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"
                             ></path></svg
                         >
                     </span>
-                    <div
-                        class="absolute inset-0 bg-gray-800 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"
-                    >
-                    </div>
                 </a>
+
+                <!-- Friend Scenario Card -->
+                <a
+                    href="/create?mode=friend"
+                    class="group relative p-6 bg-gradient-to-br from-blue-50 to-cyan-100 rounded-2xl border-2 border-blue-200 hover:border-blue-400 transition-all hover:scale-105 hover:shadow-xl text-left"
+                >
+                    <div class="text-4xl mb-3">🤝</div>
+                    <h3 class="font-bold text-gray-900 text-lg mb-2">
+                        朋友默契度
+                    </h3>
+                    <p class="text-sm text-gray-600 mb-3">
+                        8 道精选题目，测试你们的玩乐默契、相处边界和情绪价值观。
+                    </p>
+                    <span
+                        class="inline-flex items-center gap-1 text-sm font-medium text-blue-600 group-hover:gap-2 transition-all"
+                    >
+                        开始测试
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"
+                            ></path></svg
+                        >
+                    </span>
+                </a>
+            </div>
+
+            <!-- Match Entry Button -->
+            <div class="flex justify-center">
                 <a
                     href="/match"
                     class="group relative px-8 py-4 bg-white text-black border-2 border-black font-bold rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-lg"
                 >
                     <span class="relative z-10 flex items-center gap-2">
-                        匹配 TA 的 Match Score
+                        已有邀请码？匹配 TA 的 Score
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="20"
@@ -96,7 +138,7 @@ import Layout from "../layouts/Layout.astro";
                 <div class="text-2xl mb-2">🧬</div>
                 <h3 class="font-bold text-gray-900 mb-2">深度编码</h3>
                 <p class="text-sm text-gray-500">
-                    基于生活习惯、金钱观、沟通模式、核心价值观四大维度。
+                    多维度问卷，精准捕捉你们的相处模式和价值取向。
                 </p>
             </div>
             <div class="p-6 bg-gray-50 rounded-2xl">
@@ -110,7 +152,7 @@ import Layout from "../layouts/Layout.astro";
                 <div class="text-2xl mb-2">🤖</div>
                 <h3 class="font-bold text-gray-900 mb-2">AI 分析</h3>
                 <p class="text-sm text-gray-500">
-                    生成犀利的社会学分析报告，直击关系痛点与优势。
+                    生成犀利的分析报告，直击关系痛点与默契优势。
                 </p>
             </div>
         </div>
