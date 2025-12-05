@@ -288,7 +288,12 @@ export const fetchAIAnalysis = async (
         const decoder = new TextDecoder();
         let accumulatedText = '';
 
-        if (reader) {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            accumulatedText = data.reportText || data.details || JSON.stringify(data);
+            if (onStream) onStream(accumulatedText);
+        } else if (reader) {
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;

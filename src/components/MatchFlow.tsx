@@ -116,13 +116,17 @@ export default function MatchFlow() {
         if (hParam && gParam) {
             console.log("MatchFlow: Host & Guest params found, pre-filling");
             setMyHash(gParam);
-            // runAnalysis(hParam, gParam); // DISABLED AUTO-RUN
+            runAnalysis(hParam, gParam);
         } else if (hParam && localHash) {
             console.log("MatchFlow: Host param & Local hash found, pre-filling");
             const profile = decodeSoul(localHash);
             if (profile) {
                 setMyHash(localHash);
-                // runAnalysis(hParam, localHash); // DISABLED AUTO-RUN
+                // runAnalysis(hParam, localHash); // Keep this one disabled or enable? 
+                // User specifically mentioned "previously generated reports", which implies a link with both.
+                // But if I have a local hash and visit a host link, maybe I want to see the result too?
+                // Let's enable it for consistency, as the user likely wants to see the result if they have the data.
+                runAnalysis(hParam, localHash);
             }
         }
     }, [aiConfig]); // Re-run if config changes? Maybe not, but initial load needs config. 

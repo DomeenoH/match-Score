@@ -27,7 +27,7 @@ export default function AnalysisReport({ result, hostName, guestName, hostHash, 
 
     // Robust parsing using Regex to find sections regardless of formatting (markdown, numbering, etc.)
     const extractSection = (text: string, keyword: string, nextKeyword?: string) => {
-        const pattern = '(?:^|\\n)[^\\n]*' + keyword + '[:：]?\\s*(?:\\n|$)';
+        const pattern = '(?:^|\\n)[^\\n]*' + keyword + '.*(?:\\n|$)';
         const keywordRegex = new RegExp(pattern, 'i');
 
         const match = text.match(keywordRegex);
