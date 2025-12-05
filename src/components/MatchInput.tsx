@@ -32,8 +32,11 @@ export default function MatchInput({ onMatch }: MatchInputProps) {
         return text.trim();
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleMatch = (e: React.MouseEvent) => {
+        e.preventDefault(); // Prevent any default behavior
+        e.stopPropagation();
+        console.log("Match button clicked");
+
         setError('');
 
         const hash = extractHash(input);
@@ -48,13 +51,14 @@ export default function MatchInput({ onMatch }: MatchInputProps) {
             return;
         }
 
+        console.log("Hash extracted and validated:", hash);
         onMatch(hash);
     };
 
     return (
         <div className="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg">
             <h2 className="text-xl font-bold mb-4 text-center">输入对方的 Soul Hash</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
                 <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -63,12 +67,13 @@ export default function MatchInput({ onMatch }: MatchInputProps) {
                 />
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 <button
-                    type="submit"
+                    type="button"
+                    onClick={handleMatch}
                     className="w-full py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
                 >
                     开始匹配
                 </button>
-            </form>
+            </div>
         </div>
     );
 }

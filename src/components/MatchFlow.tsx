@@ -20,6 +20,7 @@ export default function MatchFlow() {
     const [retryCount, setRetryCount] = useState(0);
 
     const handleMatchStart = (hash: string) => {
+        console.log("Match started with hash:", hash);
         setHostHash(hash);
         const url = new URL(window.location.href);
         url.searchParams.set('host', hash);
