@@ -2,7 +2,21 @@ import type { APIRoute } from 'astro';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // 1. 引入 Vercel KV
-import { kv } from '@vercel/kv';
+import Redis from 'ioredis';
+
+// Initialize Redis client
+let redis: Redis | null = null;
+if (process.env.REDIS_URL) {
+    try {
+        console.log('Initializing Redis client with REDIS_URL');
+        redis = new Redis(process.env.REDIS_URL);
+        redis.on('error', (err) => console.error('Redis Client Error:', err));
+    } catch (e) {
+        console.error('Failed to initialize Redis client:', e);
+    }
+} else {
+    console.warn('REDIS_URL not found, caching will be disabled.');
+}
 
 // 缓存过期时间：7天 (秒)
 const CACHE_TTL_SECONDS = 60 * 60 * 24 * 7;
@@ -31,10 +45,10 @@ export const POST: APIRoute = async ({ request }) => {
         // --- 3. 缓存检查 (Cache Check) ---
         if (cacheKey) {
             try {
-                // Check if KV is configured
-                if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+                // Check if Redis is configured
+                if (redis) {
                     console.log(`Checking cache for key: ${cacheKey} `);
-                    const cachedReport = await kv.get<string>(cacheKey);
+                    const cachedReport = await redis.get(cacheKey);
 
                     if (cachedReport) {
                         console.log('Cache HIT: Returning cached report.');
@@ -47,7 +61,7 @@ export const POST: APIRoute = async ({ request }) => {
                         });
                     }
                 } else {
-                    console.warn('Vercel KV not configured, skipping cache check.');
+                    console.warn('Redis not configured, skipping cache check.');
                 }
             } catch (kvError) {
                 console.error('KV Cache Check Error:', kvError);
@@ -152,9 +166,9 @@ export const POST: APIRoute = async ({ request }) => {
                         // 6. 流结束时，写入缓存
                         if (cacheKey && fullStreamContent) {
                             try {
-                                if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+                                if (redis) {
                                     console.log('Streaming complete. Writing to cache.');
-                                    await kv.set(cacheKey, fullStreamContent, { ex: CACHE_TTL_SECONDS });
+                                    await redis.set(cacheKey, fullStreamContent, 'EX', CACHE_TTL_SECONDS);
                                 }
                             } catch (kvError) {
                                 console.error('KV Cache Write Error:', kvError);
@@ -232,9 +246,9 @@ export const POST: APIRoute = async ({ request }) => {
             // 7. 非流式结束后，写入缓存
             if (cacheKey && reportText) {
                 try {
-                    if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+                    if (redis) {
                         console.log('Non-streaming complete. Writing to cache.');
-                        await kv.set(cacheKey, reportText, { ex: CACHE_TTL_SECONDS });
+                        await redis.set(cacheKey, reportText, 'EX', CACHE_TTL_SECONDS);
                     }
                 } catch (kvError) {
                     console.error('KV Cache Write Error:', kvError);

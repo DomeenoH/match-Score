@@ -18,6 +18,8 @@ export default function MatchFlow() {
     });
     const [showSettings, setShowSettings] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
+    const [manualHashInput, setManualHashInput] = useState('');
+    const [showHashInput, setShowHashInput] = useState(false);
 
     const handleMatchStart = (hash: string) => {
         console.log("MatchFlow: handleMatchStart called with hash:", hash);
@@ -28,18 +30,13 @@ export default function MatchFlow() {
         window.history.pushState({}, '', url);
         console.log("MatchFlow: URL updated to", url.toString());
 
-        // Auto-start analysis if local user exists
+        // Check for local hash
         const localHash = localStorage.getItem('soul_hash');
-        console.log("MatchFlow: Checking local hash:", localHash);
-
         if (localHash) {
             const profile = decodeSoul(localHash);
             if (profile) {
-                console.log("MatchFlow: Local hash valid, auto-starting analysis");
                 setMyHash(localHash);
-                runAnalysis(hash, localHash);
-            } else {
-                console.log("MatchFlow: Local hash invalid");
+                // Do NOT auto-start analysis. Wait for user confirmation.
             }
         }
     };
@@ -117,17 +114,15 @@ export default function MatchFlow() {
         const localHash = localStorage.getItem('soul_hash');
 
         if (hParam && gParam) {
-            console.log("MatchFlow: Host & Guest params found, starting analysis");
+            console.log("MatchFlow: Host & Guest params found, pre-filling");
             setMyHash(gParam);
-            runAnalysis(hParam, gParam);
+            // runAnalysis(hParam, gParam); // DISABLED AUTO-RUN
         } else if (hParam && localHash) {
-            console.log("MatchFlow: Host param & Local hash found, starting analysis");
-            // If we have host param AND a local hash, use local hash as guest
-            // Verify it's valid first
+            console.log("MatchFlow: Host param & Local hash found, pre-filling");
             const profile = decodeSoul(localHash);
             if (profile) {
                 setMyHash(localHash);
-                runAnalysis(hParam, localHash);
+                // runAnalysis(hParam, localHash); // DISABLED AUTO-RUN
             }
         }
     }, [aiConfig]); // Re-run if config changes? Maybe not, but initial load needs config. 
@@ -283,28 +278,82 @@ export default function MatchFlow() {
 
                         {/* Direct Hash Input for Self */}
                         <div className="text-sm text-gray-500">
-                            已有自己的 Soul Hash？
-                            <button
-                                onClick={() => {
-                                    const hash = prompt("请输入你的 Soul Hash:");
-                                    if (hash) {
-                                        const profile = decodeSoul(hash);
-                                        if (profile) {
-                                            localStorage.setItem('soul_hash', hash);
-                                            setMyHash(hash);
-                                            if (hostHash) {
-                                                runAnalysis(hostHash, hash);
+                            {!showHashInput ? (
+                                <>
+                                    已有自己的 Soul Hash？
+                                    <button
+                                        onClick={() => setShowHashInput(true)}
+                                        className="text-black font-bold underline hover:text-gray-700 ml-1"
+                                    >
+                                        直接导入
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="mt-4 flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2">
+                                    <input
+                                        type="text"
+                                        value={manualHashInput}
+                                        onChange={(e) => setManualHashInput(e.target.value)}
+                                        placeholder="粘贴你的 Hash..."
+                                        className="px-3 py-2 border rounded-lg text-sm w-64 focus:ring-2 focus:ring-black focus:border-transparent"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            if (manualHashInput) {
+                                                const profile = decodeSoul(manualHashInput);
+                                                if (profile) {
+                                                    localStorage.setItem('soul_hash', manualHashInput);
+                                                    setMyHash(manualHashInput);
+                                                    setShowHashInput(false);
+                                                } else {
+                                                    alert("无效的 Hash");
+                                                }
                                             }
-                                        } else {
-                                            alert("无效的 Hash");
-                                        }
-                                    }
-                                }}
-                                className="text-black font-bold underline hover:text-gray-700 ml-1"
-                            >
-                                直接导入
-                            </button>
+                                        }}
+                                        className="px-3 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800"
+                                    >
+                                        确认
+                                    </button>
+                                    <button
+                                        onClick={() => setShowHashInput(false)}
+                                        className="px-3 py-2 text-gray-500 hover:bg-gray-100 rounded-lg text-sm"
+                                    >
+                                        取消
+                                    </button>
+                                </div>
+                            )}
                         </div>
+
+                        {/* Start Analysis Button - Only show if both hashes are present */}
+                        {hostHash && myHash && (
+                            <div className="mt-6 animate-in fade-in zoom-in duration-300">
+                                <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100 mb-4">
+                                    <p className="text-indigo-900 font-medium mb-2">
+                                        双方档案已就位
+                                    </p>
+                                    <div className="flex items-center justify-center gap-4 text-sm text-gray-600 mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-black"></span>
+                                            {decodeSoul(hostHash)?.name}
+                                        </div>
+                                        <span className="text-gray-300">vs</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                                            {decodeSoul(myHash)?.name}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => runAnalysis(hostHash, myHash)}
+                                        className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                                    >
+                                        ✨ 开始灵魂共鸣分析
+                                    </button>
+                                </div>
+                                <p className="text-xs text-gray-400">
+                                    点击上方按钮开始 AI 分析，或者下方重新填写问卷
+                                </p>
+                            </div>
+                        )}
                     </div>
                     <Questionnaire onComplete={handleQuestionnaireComplete} />
                 </div>

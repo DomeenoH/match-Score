@@ -31,21 +31,32 @@ export interface AnalysisResult {
  * 计算两个 SoulProfile 之间的匹配度（距离）
  * 距离越小，匹配度越高
  */
+/**
+ * 计算两个 SoulProfile 之间的匹配度（距离）
+ * 距离越小，匹配度越高
+ * v2.1: 引入加权算法
+ */
 export const calculateDistance = (profileA: SoulProfile, profileB: SoulProfile): number => {
-    let totalDifference = 0;
+    let totalWeightedDiff = 0;
+    let maxWeightedDiff = 0;
     const numQuestions = QUESTIONS.length;
 
     for (let i = 0; i < numQuestions; i++) {
+        const question = QUESTIONS[i];
+        const weight = question.weight || 1; // Default weight 1
+
         const answerA = profileA.answers[i];
         const answerB = profileB.answers[i];
-        totalDifference += Math.abs(answerA - answerB);
+
+        const diff = Math.abs(answerA - answerB);
+
+        totalWeightedDiff += diff * weight;
+        maxWeightedDiff += 4 * weight; // Max diff per question is 4
     }
 
     // 将总差异标准化为 0-100 的匹配度分数
-    // 每题差异最大为 4 (0 vs 4)，50 题最大差异为 50 * 4 = 200
-    // 匹配度 = (1 - (总差异 / 最大总差异)) * 100
-    const maxTotalDifference = numQuestions * 4;
-    const matchScore = Math.round((1 - (totalDifference / maxTotalDifference)) * 100);
+    // 匹配度 = (1 - (加权总差异 / 最大加权总差异)) * 100
+    const matchScore = Math.round((1 - (totalWeightedDiff / maxWeightedDiff)) * 100);
 
     return matchScore;
 };
