@@ -65,6 +65,12 @@ export const calculateDistance = (profileA: SoulProfile, profileB: SoulProfile):
  * 将两个 SoulProfile 转化为 LLM 需要的结构化对比数据
  */
 export const generateAIContext = (hostProfile: SoulProfile, guestProfile: SoulProfile): AIContext => {
+    // 0. 数据完整性校验 (Robustness)
+    const requiredLength = QUESTIONS.length;
+    if (hostProfile.answers.length !== requiredLength || guestProfile.answers.length !== requiredLength) {
+        throw new Error(`数据版本不兼容：当前题库为 ${requiredLength} 题，但用户数据为 ${hostProfile.answers.length}/${guestProfile.answers.length} 题。请重新测试。`);
+    }
+
     // 1. 计算基础分数
     const matchScore = calculateDistance(hostProfile, guestProfile);
 
@@ -131,11 +137,11 @@ export const createAIPrompt = (context: AIContext): string => {
     prompt += "\n\n--- 维度总结 ---";
     // 提示 AI 根据四个维度（lifestyle, finance, communication, values）的差异度，给出概括性评价。
 
-    prompt += "\n\n请根据上述数据和风格要求，生成报告的最终内容，报告应包含以下结构：\n";
-    prompt += "1. 核心结论（一句话总结，直指本质，不要废话）\n";
-    prompt += "2. 关键优势分析（列点阐述，说明这些默契在生活中意味着什么）\n";
-    prompt += "3. 潜在雷区预警（列点阐述，直接指出如果不注意会吵什么架）\n";
-    prompt += "4. 长期相处建议（给出马上能用的实操建议）\n";
+    prompt += "\n\n请根据上述数据和风格要求，生成报告的最终内容。为了便于程序解析，请严格使用以下分隔符将各板块分开（不要改变分隔符格式）：\n";
+    prompt += "### 核心结论 ###\n（一句话总结，直指本质，不要废话）\n\n";
+    prompt += "### 关键优势分析 ###\n（列点阐述，说明这些默契在生活中意味着什么）\n\n";
+    prompt += "### 潜在雷区预警 ###\n（列点阐述，直接指出如果不注意会吵什么架）\n\n";
+    prompt += "### 长期相处建议 ###\n（给出马上能用的实操建议）\n";
 
     return prompt;
 };

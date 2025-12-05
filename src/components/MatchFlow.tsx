@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MatchInput from './MatchInput';
 import Questionnaire from './Questionnaire';
 import AnalysisReport from './AnalysisReport';
@@ -20,6 +20,8 @@ export default function MatchFlow() {
     const [retryCount, setRetryCount] = useState(0);
     const [manualHashInput, setManualHashInput] = useState('');
     const [showHashInput, setShowHashInput] = useState(false);
+    const [configLoaded, setConfigLoaded] = useState(false);
+    const analysisInitiated = useRef(false);
 
     const handleMatchStart = (hash: string) => {
         console.log("MatchFlow: handleMatchStart called with hash:", hash);
@@ -51,6 +53,7 @@ export default function MatchFlow() {
                 console.error("Failed to parse saved config", e);
             }
         }
+        setConfigLoaded(true);
     }, []);
 
     const handleSaveConfig = (newConfig: AIConfig) => {
@@ -100,6 +103,9 @@ export default function MatchFlow() {
     };
 
     useEffect(() => {
+        if (!configLoaded) return;
+        if (analysisInitiated.current) return;
+
         console.log("MatchFlow: URL Params Effect running");
         const params = new URLSearchParams(window.location.search);
         const hParam = params.get('host');
@@ -116,6 +122,7 @@ export default function MatchFlow() {
         if (hParam && gParam) {
             console.log("MatchFlow: Host & Guest params found, pre-filling");
             setMyHash(gParam);
+            analysisInitiated.current = true;
             runAnalysis(hParam, gParam);
         } else if (hParam && localHash) {
             console.log("MatchFlow: Host param & Local hash found, pre-filling");
@@ -126,10 +133,11 @@ export default function MatchFlow() {
                 // User specifically mentioned "previously generated reports", which implies a link with both.
                 // But if I have a local hash and visit a host link, maybe I want to see the result too?
                 // Let's enable it for consistency, as the user likely wants to see the result if they have the data.
+                analysisInitiated.current = true;
                 runAnalysis(hParam, localHash);
             }
         }
-    }, [aiConfig]); // Re-run if config changes? Maybe not, but initial load needs config. 
+    }, [configLoaded]); // Only run once when config is loaded 
     // Actually, config is loaded in another useEffect. We should probably merge them or ensure config is ready.
     // But config has default values, so it's fine.
 

@@ -25,36 +25,41 @@ export default function AnalysisReport({ result, hostName, guestName, hostHash, 
     // Log raw text for debugging
     console.log('Analysis Report Raw Text:', rawText);
 
-    // Robust parsing using Regex to find sections regardless of formatting (markdown, numbering, etc.)
-    const extractSection = (text: string, keyword: string, nextKeyword?: string) => {
-        const pattern = '(?:^|\\n)[^\\n]*' + keyword + '.*(?:\\n|$)';
-        const keywordRegex = new RegExp(pattern, 'i');
+    // Robust parsing using Regex to find sections with new separators
+    const extractSection = (text: string, sectionName: string) => {
+        // Match content between ### Section Name ### and the next ### (or end of string)
+        // The regex looks for:
+        // 1. ### Section Name ### (allowing for loose whitespace)
+        // 2. Captures everything until the next ### or end of text
+        const pattern = `###\\s*${sectionName}\\s*###([\\s\\S]*?)(?:###|$)`;
+        const regex = new RegExp(pattern, 'i');
+        const match = text.match(regex);
 
-        const match = text.match(keywordRegex);
-        if (!match) return null;
-
-        const startIndex = match.index! + match[0].length;
-
-        let endIndex = text.length;
-        if (nextKeyword) {
-            const remainingText = text.slice(startIndex);
-            const nextPattern = '(?:^|\\n)[#*\\s]*\\d*[\\.\\、]?\\s*' + nextKeyword;
-            const nextKeywordRegex = new RegExp(nextPattern, 'i');
-            const nextMatch = remainingText.match(nextKeywordRegex);
-            if (nextMatch) {
-                endIndex = startIndex + nextMatch.index!;
-            }
+        if (match && match[1]) {
+            return match[1].trim();
         }
 
-        let content = text.slice(startIndex, endIndex).trim();
-        return content.replace(/^[-—]+/, '').replace(/[-—]+$/, '').trim();
+        // Fallback for old format (just in case) or partial matches
+        // Try matching the line containing the section name
+        const fallbackPattern = `(?:^|\\n)[^\\n]*${sectionName}.*([\\s\\S]*)`;
+        const fallbackRegex = new RegExp(fallbackPattern, 'i');
+        const fallbackMatch = text.match(fallbackRegex);
+
+        if (fallbackMatch && fallbackMatch[1]) {
+            // This is risky as it grabs everything till end, so we rely on the new format mostly.
+            // For safety, let's just return null if strict match fails, or try to be smart?
+            // Given we control the prompt now, let's stick to strict parsing but maybe allow "1. Section" style as legacy fallback?
+            return null;
+        }
+
+        return null;
     };
 
-    // Parsing logic based on keywords
-    const conclusion = extractSection(rawText, "核心结论", "关键优势") || "暂无结论";
-    const strengths = extractSection(rawText, "关键优势", "潜在雷区");
-    const conflicts = extractSection(rawText, "潜在雷区", "长期相处");
-    const advice = extractSection(rawText, "长期相处");
+    // Parsing logic based on new separators
+    const conclusion = extractSection(rawText, "核心结论") || extractSection(rawText, "1.\\s*核心结论") || "暂无结论";
+    const strengths = extractSection(rawText, "关键优势分析") || extractSection(rawText, "2.\\s*关键优势分析");
+    const conflicts = extractSection(rawText, "潜在雷区预警") || extractSection(rawText, "3.\\s*潜在雷区预警");
+    const advice = extractSection(rawText, "长期相处建议") || extractSection(rawText, "4.\\s*长期相处建议");
 
     // Helper to render text with bold markdown support and name highlighting
     const formatText = (text: string) => {

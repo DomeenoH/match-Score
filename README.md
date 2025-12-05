@@ -1,6 +1,6 @@
 # Match Score 🔮
 
-> 探索灵魂的欧几里得距离，AI 驱动的深度契合度分析。
+> 探索灵魂的多维加权距离，AI 驱动的深度契合度分析。
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Astro](https://img.shields.io/badge/built%20with-Astro-orange.svg)

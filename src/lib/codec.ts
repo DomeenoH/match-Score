@@ -33,31 +33,4 @@ export const decodeSoul = (hash: string): SoulProfile | null => {
     }
 };
 
-// 新增：用于在匹配页面计算基础欧几里得距离的函数
-export const calculateDistance = (profileA: SoulProfile, profileB: SoulProfile): number => {
-    // 仅比较 answers 数组
-    const answersA = profileA.answers;
-    const answersB = profileB.answers;
 
-    // 必须验证 answersA.length === 50，如果长度不符则返回 0 或抛错
-    if (answersA.length !== 50 || answersA.length !== answersB.length) {
-        console.error(`Answer array length mismatch or unexpected length. Expected 50, got A:${answersA.length}, B:${answersB.length}`);
-        return 0;
-    }
-
-    let squaredDifferenceSum = 0;
-    for (let i = 0; i < answersA.length; i++) {
-        squaredDifferenceSum += Math.pow(answersA[i] - answersB[i], 2);
-    }
-
-    const distance = Math.sqrt(squaredDifferenceSum);
-
-    // 归一化：基于 50 题计算最大可能距离
-    // Max Distance = sqrt(50 * (5 - 1)^2) = sqrt(50 * 16) = sqrt(800) ≈ 28.28
-    const maxPossibleDistance = Math.sqrt(50 * 16);
-
-    // 匹配度公式: 100 - (实际距离 / 最大距离) * 100
-    const matchScore = 100 - (distance / maxPossibleDistance) * 100;
-
-    return Math.max(0, parseFloat(matchScore.toFixed(1))); // 确保分数在 0-100
-};
