@@ -284,7 +284,6 @@ export const fetchAIAnalysis = async (
             throw new Error(`AI Analysis request failed: ${response.status} ${response.statusText} - ${errorText}`);
         }
 
-        const reader = response.body?.getReader();
         const decoder = new TextDecoder();
         let accumulatedText = '';
 
@@ -293,19 +292,22 @@ export const fetchAIAnalysis = async (
             const data = await response.json();
             accumulatedText = data.reportText || data.details || JSON.stringify(data);
             if (onStream) onStream(accumulatedText);
-        } else if (reader) {
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = decoder.decode(value, { stream: true });
-                accumulatedText += chunk;
-                if (onStream) onStream(accumulatedText);
-            }
         } else {
-            // Fallback for non-streaming environments
-            const data = await response.json();
-            accumulatedText = data.reportText;
+            const reader = response.body?.getReader();
+            if (reader) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    accumulatedText += chunk;
+                    if (onStream) onStream(accumulatedText);
+                }
+            } else {
+                // Fallback for non-streaming environments
+                const data = await response.json();
+                accumulatedText = data.reportText;
+            }
         }
 
         return {
