@@ -7,6 +7,7 @@ import { fetchAIAnalysis, type AnalysisResult } from '../lib/ai';
 
 export default function MatchFlow() {
     const [hostHash, setHostHash] = useState<string | null>(null);
+    const [myHash, setMyHash] = useState<string | null>(null);
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export default function MatchFlow() {
     };
 
     const handleQuestionnaireComplete = async (myHash: string) => {
+        setMyHash(myHash);
         setLoading(true);
         setError(null);
 
@@ -61,7 +63,13 @@ export default function MatchFlow() {
     };
 
     if (analysis) {
-        return <AnalysisReport result={analysis} />;
+        return (
+            <AnalysisReport
+                result={analysis}
+                hostInfo={hostHash ? hostHash.substring(0, 8) + '...' : undefined}
+                guestInfo={myHash ? myHash.substring(0, 8) + '...' : undefined}
+            />
+        );
     }
 
     if (loading) {
