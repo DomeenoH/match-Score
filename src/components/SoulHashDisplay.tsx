@@ -94,15 +94,8 @@ ${hash}`;
                 scale: 2,
                 useCORS: true,
                 backgroundColor: null, // Transparent to pick up gradient
-                logging: true, // Enable logging to debug
+                logging: false, // Disable logging for production
                 windowWidth: 600,
-                onclone: (clonedDoc) => {
-                    // Ensure the cloned element is visible and has proper layout
-                    const clonedElement = clonedDoc.querySelector('[data-card-container]') as HTMLElement;
-                    if (clonedElement) {
-                        clonedElement.style.transform = 'none'; // Reset any transforms
-                    }
-                }
             });
 
             const image = canvas.toDataURL("image/png");

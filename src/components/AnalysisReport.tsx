@@ -197,12 +197,6 @@ export default function AnalysisReport({ result, hostName, guestName, hostHash, 
                 backgroundColor: '#ffffff',
                 logging: false,
                 windowWidth: 1200, // Force desktop width for better layout
-                onclone: (clonedDoc) => {
-                    const clonedElement = clonedDoc.querySelector('[data-report-container]') as HTMLElement;
-                    if (clonedElement) {
-                        clonedElement.style.transform = 'none';
-                    }
-                }
             });
 
             const image = canvas.toDataURL("image/png");
@@ -244,12 +238,6 @@ export default function AnalysisReport({ result, hostName, guestName, hostHash, 
                 backgroundColor: null,
                 logging: false,
                 windowWidth: 600,
-                onclone: (clonedDoc) => {
-                    const clonedElement = clonedDoc.querySelector('[data-invite-card-container]') as HTMLElement;
-                    if (clonedElement) {
-                        clonedElement.style.transform = 'none';
-                    }
-                }
             });
             const image = canvas.toDataURL("image/png");
             const link = document.createElement('a');
